@@ -5,7 +5,7 @@
 # @Software: PyCharm
 
 import argparse
-
+import logging
 
 def get_option(parser= argparse.ArgumentParser()):
     parser.add_argument('--batch_size',type=int,default=32,help="input batch size,default = 64")
@@ -19,10 +19,10 @@ def get_option(parser= argparse.ArgumentParser()):
     args = parser.parse_args()
 
     if args.show:
-        print(f"batch size {args.batch_size}")
-        print(f"seed {args.seed}")
-        print(f"class num {args.class_num}")
-        print(f"log path {args.log_path}")
+        logging.info(f"batch size: {args.batch_size}")
+        logging.info(f"GPUS: {args.GPUS}")
+        logging.info(f"lr: {args.lr}")
+
 
     return args
 

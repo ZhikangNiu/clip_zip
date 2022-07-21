@@ -106,6 +106,8 @@ temp = 4
 
 # loss = KLD(x_s.softmax(), x_t.softmax()) + smoothL1(x_s, x_t)
 L1 = nn.L1Loss()
+smoothL1 = nn.SmoothL1Loss()
+cos_loss = nn.CosineEmbeddingLoss()
 # TODO:尝试使用smoothL1 Loss或者余弦损失
 # smoothL1 Loss 太平滑！
 alpha = 0.3
@@ -137,25 +139,30 @@ if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
 #bug：val经常报错的那个问题好像是最后一个判断引起的！！！！
-
+tar = torch.ones(batch_size).cuda()
+print(f"tar shape: {tar.shape}")
 min_loss = 10000
 for epoch in range(epochs):
     for data,_ in tqdm(train_loader):
         data = data.cuda()
+        # print(data.shape)
         # 教师网络的预测
         with torch.no_grad():
             teacher_preds = teacher_model(data.half())
+            # teacher_preds.shape = [batch,512]
+            # print(teacher_preds.shape)
 
         # 学生模型的预测
         student_preds = student_model(data).half()
-
+        #print(student_preds.shape)
         # 计算蒸馏后的预测结果及soft_loss
         ditillation_loss = soft_loss(
             F.softmax(student_preds/temp,dim=1),
             F.softmax(teacher_preds/temp,dim=1)
         )
 
-        loss = ditillation_loss+L1(student_preds,teacher_preds)
+        loss = ditillation_loss+smoothL1(student_preds,teacher_preds)+cos_loss(teacher_preds,student_preds,tar)
+
 
         optimizer.zero_grad()
         loss.backward()
@@ -164,4 +171,7 @@ for epoch in range(epochs):
 
     logger.info('Epoch: {} \tTraining Loss: {:.6f}'.format(epoch, loss.item()))
     if loss.item() < min_loss:
-        torch.save(student_model.state_dict, os.path.join(save_folder, 'KD_BEST_epoch_{}.pth'.format(epoch)))
+        min_loss = loss.item()
+        torch.save(student_model.state_dict(), os.path.join(save_folder, 'KD_BEST_student.pth'))
+
+torch.save(student_model.state_dict(),os.path.join(save_folder,'last_KD_student_model.pth'))
