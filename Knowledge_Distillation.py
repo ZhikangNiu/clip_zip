@@ -34,6 +34,12 @@ epochs = opt.epochs
 LOG_FILE = opt.log_file
 save_folder = opt.checkpoint_dir
 lr = opt.lr
+gpus = opt.GPUS
+
+print(f"{batch_size}/"
+      f"{epochs}/"
+      f"{lr}/"
+      f"{gpus}")
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -97,13 +103,8 @@ torch.backends.cudnn.deterministic = True
 
 # 定义教师网络
 teacher_model = model.visual.eval()
-# 优化器
-params = [p for p in teacher_model.parameters() if p.requires_grad]
-optimizer = torch.optim.Adam(params,lr=lr)
-scheduler = CosineAnnealingLR(optimizer, T_max=100, eta_min=0)
 # 蒸馏温度
 temp = 4
-
 # loss = KLD(x_s.softmax(), x_t.softmax()) + smoothL1(x_s, x_t)
 L1 = nn.L1Loss()
 smoothL1 = nn.SmoothL1Loss()
@@ -116,6 +117,10 @@ soft_loss = nn.KLDivLoss()
 
 # 创建学生模型
 student_model = timm.create_model('mobilevitv2_050',pretrained=True,num_classes=512).cuda()
+# 优化器
+params = [p for p in student_model.parameters() if p.requires_grad]
+optimizer = torch.optim.Adam(params,lr=lr)
+scheduler = CosineAnnealingLR(optimizer, T_max=100, eta_min=0)
 
 
 # 读取数据集
@@ -161,7 +166,8 @@ for epoch in range(epochs):
             F.softmax(teacher_preds/temp,dim=1)
         )
 
-        loss = ditillation_loss+smoothL1(student_preds,teacher_preds)+cos_loss(teacher_preds,student_preds,tar)
+        loss = ditillation_loss+smoothL1(student_preds,teacher_preds)
+        # bug:加上cos_loss会报错 RuntimeError: The size of tensor a (1024) must match the size of tensor b (196) at non-singleton dimension 0
 
 
         optimizer.zero_grad()
