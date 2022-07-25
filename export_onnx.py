@@ -8,21 +8,34 @@ import torch.onnx
 import timm
 import torch
 
+def _set_type():
+    return torch.float16
+
 def convert_onnx(model,
                  checkpoint_path:str,
+                 half = True,
                  parallel_trained:bool=True,
                  device='cuda' if torch.cuda.is_available() else 'cpu'):
     # 加载参数，从多卡转化为单卡
     state_dict = torch.load(checkpoint_path)
     if parallel_trained:
         model.load_state_dict({k.replace('module.', ''): v for k, v in state_dict.items()})
-        model = model.half().to(device)
+        if half:
+            model = model.type(_set_type()).to(device)
+        else:
+            model = model.to(device)
     else:
         model.load_state_dict(state_dict)
-        model = model.half.to(device)
+        if half:
+            model = model.type(_set_type()).to(device)
+        else:
+            model = model.to(device)
     # 将模型开启测试
     model.eval()
-    dummy_input = torch.randn(1, 3,256,256, requires_grad=True).type(torch.float16).to(device)
+    if half:
+        dummy_input = torch.randn(1, 3,256,256, requires_grad=True).type(_set_type()).to(device)
+    else:
+        dummy_input = torch.randn(1, 3, 256, 256, requires_grad=True).to(device)
 
     torch.onnx.export(
         model,
