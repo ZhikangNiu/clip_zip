@@ -257,7 +257,8 @@ class CLIP(nn.Module):
                  transformer_layers: int
                  ):
         super().__init__()
-
+        # 写死dtype
+        self.dtype = torch.float16
         self.context_length = context_length
 
         if isinstance(vision_layers, (tuple, list)):
@@ -334,9 +335,12 @@ class CLIP(nn.Module):
         mask.triu_(1)  # zero out the lower diagonal
         return mask
 
-    @property
-    def dtype(self):
-        return self.visual.conv1.weight.dtype
+    # @property
+    # def dtype(self):
+    #     if self.visual.conv1 is not None:
+    #         return self.visual.conv1.weight.dtype
+    #     else:
+    #         return torch.float16
 
     def encode_image(self, image):
         return self.visual(image.type(self.dtype))
