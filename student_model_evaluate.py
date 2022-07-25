@@ -27,11 +27,8 @@ state_dict = torch.load(checkpoint_path)
 student_model.load_state_dict({k.replace('module.',''):v for k,v in state_dict.items()})
 student_model = student_model.cuda().half() # 将权重从float32 --> float16
 
-print(student_model.stem)
-
-#
 model,preprocess = clip.load("ViT-B/32",device='cuda')
-print(model.visual.conv1.weight.dtype)
+
 model.visual = student_model.eval()
 
 image = preprocess(Image.open("test2.png")).unsqueeze(0).cuda()
