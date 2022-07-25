@@ -11,13 +11,6 @@ from PIL import Image
 from clip.model import CLIP
 
 
-
-class mobilevit_clip(CLIP):
-    def __init__(self):
-        super(mobilevit_clip, self).__init__()
-    def dtype(self):
-        return torch.float16
-
 checkpoint_path = "./checkpoint/KD_BEST_student.pth"
 
 # 加载模型
@@ -31,12 +24,11 @@ model,preprocess = clip.load("ViT-B/32",device='cuda')
 
 model.visual = student_model.eval()
 
-image = preprocess(Image.open("test2.png")).unsqueeze(0).cuda()
-text = clip.tokenize(["a photo of basketball athlete", "a photo of basketball court", "a photo of classroom"]).cuda()
+image = preprocess(Image.open("test.png")).unsqueeze(0).cuda()
+text = clip.tokenize(["classroom", "教室", "a photo of classroom"]).cuda()
 
 with torch.no_grad():
     # image_features.shape = [1,512]
-    print(model.visual.stem)
     image_features = model.visual(image.half())
     # text_features.shape = [3,512]
     text_features = model.encode_text(text)
