@@ -7,6 +7,7 @@
 import torch
 import timm
 import clip
+import time
 from PIL import Image
 from clip.model import CLIP
 
@@ -24,8 +25,9 @@ model,preprocess = clip.load("ViT-B/32",device='cuda')
 
 model.visual = student_model.eval()
 
-image = preprocess(Image.open("test.png")).unsqueeze(0).cuda()
-text = clip.tokenize(["classroom", "教室", "a photo of classroom"]).cuda()
+start = time.time()
+image = preprocess(Image.open("cat.png")).unsqueeze(0).cuda()
+text = clip.tokenize(["Cat", "a photo of small Gat","a image of small cat in it", "A photo of small cat","a brown cat"]).cuda()
 
 with torch.no_grad():
     # image_features.shape = [1,512]
@@ -39,4 +41,6 @@ with torch.no_grad():
 
     probs = logits_per_image.softmax(dim=-1).cpu().numpy()
 
-print(probs)
+end = time.time()
+print(f"各个物体的概率：{probs}")
+print(f"所消耗时间：{end-start}s")
