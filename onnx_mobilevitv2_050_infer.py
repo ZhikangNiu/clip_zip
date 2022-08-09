@@ -67,7 +67,8 @@ class Mobilevitv2():
         x = self.transform(img).type(self._set_type())
         x = x.unsqueeze(0)
         ort_inputs = {self.ort_session.get_inputs()[0].name:self._to_numpy(x)}
-        ort_outs = self.ort_session.run(None,ort_inputs)
+        output_name = self.ort_session.get_outputs()[0].name
+        ort_outs = self.ort_session.run([output_name],ort_inputs)
         return ort_outs
 
 
@@ -94,4 +95,7 @@ if __name__ == '__main__':
     img_path = "./test.png"
     onnx_infer = Mobilevitv2(onnx_path)
     ort_puts = onnx_infer.infer(img_path)
-    print(ort_puts[0].shape)
+    print(type(ort_puts))
+    print(type(ort_puts[0]))
+    print(ort_puts)
+    #print(ort_puts[0].shape)
