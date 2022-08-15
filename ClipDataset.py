@@ -15,14 +15,6 @@ import numpy as np
 import os
 
 
-class OwnDataset(Dataset):
-    def __init__(self):
-        ...
-    def __len__(self):
-        ...
-    def __getitem__(self, item):
-        ...
-
 class JsonDataset(Dataset):
     """
     使用的是Place365 json读取方式
@@ -61,4 +53,28 @@ class JsonDataset(Dataset):
                 img = transform(img)
             label = torch.tensor(label)
             return img,label
+
+class single_file_dataset(Dataset):
+    def __init__(self,file_path,label,transform=None):
+        self.file_path = file_path
+        self.img_list = []
+        for img_path in os.listdir(self.file_path):
+            img_path = os.path.join(self.file_path,img_path)
+            img = cv2.imread(img_path,cv2.COLOR_BGR2RGB)
+            if img is not None:
+                img = Image.fromarray(img)
+                self.img_list.append(img)
+        self.label = label
+        self.transform = transform
+    def __len__(self):
+        return len(self.img_list)
+    def __getitem__(self, index):
+        img = self.img_list[index]
+        if self.transform is not None:
+            img = self.transform(img)
+        else:
+            transform =transforms.Compose([transforms.ToTensor()])
+            img = transform(img)
+        label = torch.tensor(self.label)
+        return img,label
 
