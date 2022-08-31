@@ -40,7 +40,7 @@ def convert_onnx(model,
     torch.onnx.export(
         model,
         dummy_input,
-        "mobilevitv2_050_place365.onnx",
+        "mobilenetv2_100_place365.onnx",
         export_params=True,
         opset_version=10,
         do_constant_folding=True,
@@ -53,6 +53,6 @@ def convert_onnx(model,
     print('Model has been converted to ONNX')
 
 if __name__ == '__main__':
-    model = timm.create_model('mobilevitv2_050', num_classes=512)
-    checkpoint_path = './checkpoint/KD_BEST_student.pth'
+    model = timm.create_model('mobilenetv2_100', num_classes=512)
+    checkpoint_path = './checkpoint/KD_MobileNetv2_100d_BEST.pth'
     convert_onnx(model,checkpoint_path)

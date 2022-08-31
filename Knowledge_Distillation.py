@@ -5,9 +5,6 @@
 # @Software: PyCharm
 
 import os
-
-from torch.optim.lr_scheduler import CosineAnnealingLR
-
 os.environ['CUDA_VISIBLE_DEVICES']='0,1,2,3'
 import torch
 import torch.nn as nn
@@ -21,6 +18,8 @@ import timm
 from PIL import Image
 from ClipDataset import JsonDataset
 import logging
+from torchvision.datasets import ImageFolder
+from torch.optim.lr_scheduler import CosineAnnealingLR
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -35,7 +34,7 @@ LOG_FILE = opt.log_file
 save_folder = opt.checkpoint_dir
 lr = opt.lr
 gpus = opt.GPUS
-
+pretrained = opt.pretrained
 print(f"{batch_size}/"
       f"{epochs}/"
       f"{lr}/"
@@ -57,8 +56,8 @@ logger.addHandler(stream_handler)
 
 
 # 设置目录
-TRAIN_JSON_PATH = '/home/niuzhikang/src/SceneClassification/filelist/json_filelist/train.json'
-TRAIN_IMAGE_PATH = '/home/public/datasets/place365/train/data_256'
+TRAIN_JSON_PATH = '/home/public/datasets/honor_place_datasets/train'
+# TRAIN_IMAGE_PATH = '/home/public/datasets/place365/train/data_256'
 
 # 返回模型和处理方法
 model,preprocess = clip.load("ViT-B/32",device='cuda')
@@ -116,7 +115,10 @@ soft_loss = nn.KLDivLoss()
 # KL损失的reduction这玩意是个啥
 
 # 创建学生模型
-student_model = timm.create_model('mobilevitv2_050',pretrained=True,num_classes=512).cuda()
+#student_model = timm.create_model('mobilevitv2_050',pretrained=True,num_classes=512).cuda()
+student_model = timm.create_model('mobilenetv2_100',pretrained=True,num_classes=512).cuda()
+
+
 # 优化器
 params = [p for p in student_model.parameters() if p.requires_grad]
 optimizer = torch.optim.Adam(params,lr=lr)
@@ -130,8 +132,8 @@ train_process = transforms.Compose([
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
 
-train_dataset = JsonDataset(TRAIN_JSON_PATH,TRAIN_IMAGE_PATH,train_process)
-
+#train_dataset = JsonDataset(TRAIN_JSON_PATH,TRAIN_IMAGE_PATH,train_process)
+train_dataset = ImageFolder(TRAIN_JSON_PATH,train_process)
 train_loader = DataLoader(train_dataset,batch_size=batch_size,shuffle=True,)
 
 if opt.GPUS > 1:
@@ -139,14 +141,17 @@ if opt.GPUS > 1:
     student_model = nn.DataParallel(student_model)
     teacher_model.cuda()
     student_model.cuda()
+    if opt.pretrained:
+        student_model = student_model.load_state_dict(torch.load('checkpoint/KD_MobileNetv2_100d_BEST.pth'))
 
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
 #bug：val经常报错的那个问题好像是最后一个判断引起的！！！！
-tar = torch.ones(batch_size).cuda()
-print(f"tar shape: {tar.shape}")
+# tar = torch.ones(batch_size).cuda()
+# print(f"tar shape: {tar.shape}")
 min_loss = 10000
+print("-"*6+"start training"+"-"*6)
 for epoch in range(epochs):
     for data,_ in tqdm(train_loader):
         data = data.cuda()
@@ -178,6 +183,6 @@ for epoch in range(epochs):
     logger.info('Epoch: {} \tTraining Loss: {:.6f}'.format(epoch, loss.item()))
     if loss.item() < min_loss:
         min_loss = loss.item()
-        torch.save(student_model.state_dict(), os.path.join(save_folder, 'KD_BEST_student.pth'))
+        torch.save(student_model.state_dict(), os.path.join(save_folder, 'KD_MobileNetv2_100d_BEST.pth'))
 
-torch.save(student_model.state_dict(),os.path.join(save_folder,'last_KD_student_model.pth'))
+torch.save(student_model.state_dict(),os.path.join(save_folder,'last_KD_MobileNetv2_100.pth'))

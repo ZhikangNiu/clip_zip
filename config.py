@@ -13,6 +13,7 @@ def get_option(parser= argparse.ArgumentParser()):
     parser.add_argument('--lr',type=float,default=3e-4)
     parser.add_argument("--seed",type = int,default=66,help="random seed")
     parser.add_argument("--show",action="store_true",default=False)
+    parser.add_argument("--pretrained",action="store_true",default=False)
     parser.add_argument("--checkpoint_dir",type=str,default="./checkpoint")
     parser.add_argument("--log_file",type=str,default="./KD_logger.txt")
     parser.add_argument("--GPUS",type=int,default=1)

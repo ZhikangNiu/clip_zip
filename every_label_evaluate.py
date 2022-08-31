@@ -51,9 +51,9 @@ def token_list(file_path):
 
 @torch.no_grad()
 def evaluate_mobilevitv2_clip(token_list,file_path,label_list):
-    checkpoint_path = "./checkpoint/KD_BEST_student.pth"
+    checkpoint_path = "./checkpoint/KD_MobileNetv2_100d_BEST.pth"
     # 加载模型
-    mobilevitv2_model = timm.create_model('mobilevitv2_050',pretrained=True,num_classes=512)
+    mobilevitv2_model = timm.create_model('mobilenetv2_100',pretrained=True,num_classes=512)
     # 加载参数，从多卡转化为单卡
     state_dict = torch.load(checkpoint_path)
     mobilevitv2_model.load_state_dict({k.replace('module.',''):v for k,v in state_dict.items()})
@@ -70,7 +70,7 @@ def evaluate_mobilevitv2_clip(token_list,file_path,label_list):
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
 
-    csv_path = "./result.csv"
+    csv_path = "./Mobilenetv2_100_result.csv"
     # 判断csv_path是否存在，如果不存在，则创建一个新的csv文件
     if not os.path.exists(csv_path):
         # 创建csv文件
@@ -88,7 +88,7 @@ def evaluate_mobilevitv2_clip(token_list,file_path,label_list):
         batch_size =1
         loader = DataLoader(dataset,batch_size=batch_size,)
         acc = 0
-        print(len(loader))
+        #print(len(loader))
         for data,label in tqdm(loader):
             image = data.cuda()
             label = label.cuda()
