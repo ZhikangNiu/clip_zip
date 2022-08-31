@@ -1,0 +1,38 @@
+label,correct numbers,accuracy
+living room,2709.0,0.5418
+dining room,3531.0,0.7062
+bedroom,4511.0,0.9022
+garden,4061.0,0.8122
+shopping center,1675.0,0.335
+restaurant,1469.0,0.2938
+Walking street,2377.0,0.4754
+amusement park,3049.0,0.6098
+high way,4049.0,0.8098
+bridge,3569.0,0.7138
+classroom,3051.0,0.6102
+laboratory,3194.0,0.9207264341308734
+library,2596.0,0.5192
+office workstation,2064.0,0.4128
+stadium,11771.0,0.7847333333333333
+stage,3142.0,0.6284
+music hall,137.0,0.0274
+disco,1577.0,0.3154
+aquarium,4412.0,0.8824
+airport,3070.0,0.614
+farmland,2231.0,0.4462
+desert,1550.0,0.31
+mountain,2757.0,0.5514
+river,2602.0,0.5204
+beach,2648.0,0.5296
+blue sky,1811.0,0.3622
+train station,2509.0,0.5018
+subway_station,3689.0,0.7378
+interior train,3851.0,0.7702
+snow field,3290.0,0.658
+skyscraper,3914.0,0.7828
+lawn,2357.0,0.4714
+art gallery,3407.0,0.6814
+corn field,2880.0,0.576
+conference room,3711.0,0.7422
+ocean,1664.0,0.3328
+airplane_cabin,4396.0,0.8792
